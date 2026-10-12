@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.web;
 
 import com.badlogic.gdx.Files;
-import com.github.xpenatan.gdx.teavm.backends.web.WebApplication;
 import com.github.xpenatan.gdx.teavm.backends.web.WebApplicationConfiguration;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.watabou.noosa.Game;
@@ -56,6 +55,6 @@ public class WebLauncher {
 		//libGDX local files are persisted to IndexedDB by the web backend
 		FileUtils.setDefaultFileProperties( Files.FileType.Local, "" );
 
-		new WebApplication(new ShatteredPixelDungeon(new WebPlatformSupport()), config);
+		new SPDWebApplication(new ShatteredPixelDungeon(new WebPlatformSupport()), config);
 	}
 }

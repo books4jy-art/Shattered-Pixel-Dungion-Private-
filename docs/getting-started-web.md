@@ -22,8 +22,11 @@ Add `-PwebDebug` for readable (non-minified) JavaScript when debugging in the br
 
 Saves and settings are stored in the browser (IndexedDB and localStorage), so they belong to that browser and site address. Clearing site data deletes them. The game saves whenever the hero finishes acting, so refreshing or closing the page keeps your progress.
 
+A backup of each game is also taken whenever you arrive on a floor or continue a game. If the main save can't be read, the backup is restored automatically and the game says so in the log.
+
 ## Web-specific differences
 
 - Actors are processed on the render thread rather than a separate thread (`Actor.processSingleThreaded`), as the browser runtime has no thread support here.
 - Saves are written uncompressed, as TeaVM's deflater rejects a harmless zlib status.
 - Controllers, vibration and fullscreen toggling aren't supported.
+- Crashes are shown on the page with the error details, instead of only in the browser console.

@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.FileUtils;
 
 import java.io.IOException;
@@ -70,6 +71,59 @@ public class GamesInProgress {
 		}
 	}
 	
+	// Backups
+
+	//On web, saves live in browser storage and can be lost if the page closes mid-write or the game crashes,
+	// so a copy of each game is kept from the start of the current floor, and restored if the game can't be read.
+	private static final String BACKUP_FOLDER = "game%d_backup";
+
+	public static boolean restoredFromBackup = false;
+
+	public static String backupFolder( int slot ){
+		return Messages.format(BACKUP_FOLDER, slot);
+	}
+
+	public static void backupGame( int slot ){
+		if (!DeviceCompat.isWeb() || !gameExists( slot )) return;
+		try {
+			copyFolder( gameFolder( slot ), backupFolder( slot ) );
+		} catch (Exception e){
+			ShatteredPixelDungeon.reportException( e );
+		}
+	}
+
+	//restores the backup over the main save. The backup is removed afterward, so a bad backup can't be restored repeatedly
+	public static boolean restoreBackup( int slot ){
+		if (!DeviceCompat.isWeb() || !FileUtils.fileExists( backupFolder( slot ) + "/" + GAME_FILE )) return false;
+		try {
+			copyFolder( backupFolder( slot ), gameFolder( slot ) );
+			deleteBackup( slot );
+			slotStates.remove( slot );
+			restoredFromBackup = true;
+			return true;
+		} catch (Exception e){
+			ShatteredPixelDungeon.reportException( e );
+			return false;
+		}
+	}
+
+	public static void deleteBackup( int slot ){
+		for (String file : FileUtils.filesInDir( backupFolder( slot ) )){
+			FileUtils.deleteFile( backupFolder( slot ) + "/" + file );
+		}
+	}
+
+	//replaces the contents of one game folder with another's
+	private static void copyFolder( String from, String to ){
+		for (String file : FileUtils.filesInDir( to )){
+			FileUtils.deleteFile( to + "/" + file );
+		}
+		for (String file : FileUtils.filesInDir( from )){
+			byte[] data = FileUtils.getFileHandle( from + "/" + file ).readBytes();
+			FileUtils.getFileHandle( to + "/" + file ).writeBytes( data, false );
+		}
+	}
+	
 	public static int firstEmpty(){
 		for (int i = 1; i <= MAX_SLOTS; i++){
 			if (check(i) == null) return i;
@@ -102,6 +156,11 @@ public class GamesInProgress {
 			return slotStates.get( slot );
 			
 		} else if (!gameExists( slot )) {
+
+			//the main save is missing or damaged, try the backup before giving up on it
+			if (restoreBackup( slot )) {
+				return check( slot );
+			}
 			
 			slotStates.put(slot, null);
 			return null;
@@ -127,6 +186,11 @@ public class GamesInProgress {
 			} catch (Exception e){
 				ShatteredPixelDungeon.reportException( e );
 				info = null;
+			}
+
+			//the main save couldn't be read, try the backup before giving up on it
+			if (info == null && restoreBackup( slot )) {
+				return check( slot );
 			}
 			
 			slotStates.put( slot, info );

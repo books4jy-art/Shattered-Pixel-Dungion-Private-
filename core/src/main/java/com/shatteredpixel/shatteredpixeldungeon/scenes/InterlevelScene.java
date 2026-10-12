@@ -557,7 +557,13 @@ public class InterlevelScene extends PixelScene {
 
 			}
 
-			if (error != null) {
+			if (error != null && mode == Mode.CONTINUE && GamesInProgress.restoreBackup(GamesInProgress.curSlot)) {
+				//the save couldn't be loaded, try again from the backup
+				ShatteredPixelDungeon.reportException(error);
+				thread = null;
+				error = null;
+				Game.switchScene( InterlevelScene.class );
+			} else if (error != null) {
 				String errorMsg;
 				if (error instanceof FileNotFoundException)     errorMsg = Messages.get(this, "file_not_found");
 				else if (error instanceof IOException)          errorMsg = Messages.get(this, "io_error");

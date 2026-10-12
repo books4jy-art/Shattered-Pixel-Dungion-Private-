@@ -779,6 +779,15 @@ public class GameScene extends PixelScene {
 		if (!invVisible) toggleInvPane();
 		fadeIn();
 
+		//on web, keep a copy of the game from the start of each floor, in case the save is damaged later
+		if (Dungeon.hero.isAlive()) {
+			GamesInProgress.backupGame(GamesInProgress.curSlot);
+		}
+		if (GamesInProgress.restoredFromBackup){
+			GamesInProgress.restoredFromBackup = false;
+			GLog.n("Your save could not be read, so it was restored from a backup made when you arrived on this floor.");
+		}
+
 		//re-show WndResurrect if needed
 		if (!Dungeon.hero.isAlive()){
 			//check if hero has an unblessed ankh

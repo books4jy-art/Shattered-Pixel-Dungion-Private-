@@ -851,6 +851,7 @@ public class Dungeon {
 		}
 
 		FileUtils.overwriteFile(GamesInProgress.gameFile(save), 1);
+		GamesInProgress.deleteBackup(save);
 		
 		GamesInProgress.delete( save );
 	}
