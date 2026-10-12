@@ -1,0 +1,15 @@
+<title>Shattered Pixel Dungeon</title>
+<style>
+	/* Full-window game canvas. The game draws everything, so the page itself is a black frame. */
+	:root { --bg: #000000; --fg: #c8c3b4; color-scheme: dark; }
+	html, body { height: 100%; }
+	body { margin: 0; overflow: hidden; background: var(--bg); color: var(--fg); }
+	#canvas { display: block; outline: none; }
+</style>
+<canvas id="canvas" tabindex="0" oncontextmenu="return false"></canvas>
+<script src="app.js"></script>
+<script>
+	//game version name and code, filled in by assemble-site.sh
+	main(__MAIN_ARGS__);
+	document.getElementById("canvas").focus();
+</script>

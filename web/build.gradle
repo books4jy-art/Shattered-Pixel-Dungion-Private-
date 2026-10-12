@@ -17,10 +17,18 @@ dependencies {
     implementation "com.github.xpenatan.gdx-teavm:gdx-freetype-web:$gdxTeaVMVersion"
 }
 
+//stages the fonts from the desktop assets, without the desktop app icons
+tasks.register('stageDesktopFonts', Sync) {
+    from(new File(project(':desktop').projectDir, 'src/main/assets/fonts')) {
+        into 'fonts'
+    }
+    into layout.buildDirectory.dir('desktopFonts')
+}
+
 gdxTeaVM {
     assets(new File(project(':core').projectDir, 'src/main/assets'))
-    //desktop assets include the droid sans fallback font
-    assets(new File(project(':desktop').projectDir, 'src/main/assets'))
+    //only the droid sans fallback font is needed from the desktop assets
+    assets(layout.buildDirectory.dir('desktopFonts'))
 
     //game objects are saved and restored by class name, so they must all be available via reflection
     reflection('com.shatteredpixel.shatteredpixeldungeon**', 'com.watabou**')
@@ -39,4 +47,8 @@ gdxTeaVM {
         //full type analysis runs out of memory on a codebase this size
         fastGlobalAnalysis.set(true)
     }
+}
+
+tasks.matching { it.name == 'generateJavaScript' || it.name.startsWith('gdx_teavm') }.configureEach {
+    dependsOn 'stageDesktopFonts'
 }
