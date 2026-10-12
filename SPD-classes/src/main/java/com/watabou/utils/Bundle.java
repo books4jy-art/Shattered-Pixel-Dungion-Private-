@@ -533,7 +533,8 @@ public class Bundle {
 	}
 
 	public static boolean write( Bundle bundle, OutputStream stream ){
-		return write(bundle, stream, compressByDefault);
+		//TeaVM's deflater treats zlib's harmless Z_BUF_ERROR as fatal, so web saves are left uncompressed
+		return write(bundle, stream, compressByDefault && !DeviceCompat.isWeb());
 	}
 
 	public static boolean write( Bundle bundle, OutputStream stream, boolean compressed ) {

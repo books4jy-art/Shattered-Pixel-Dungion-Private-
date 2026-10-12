@@ -40,6 +40,11 @@ public abstract class PlatformSupport {
 		return true; //default
 	}
 
+	//whether the platform is primarily used with a mouse and keyboard, and so should default to the full UI
+	public boolean prefersFullInterface(){
+		return DeviceCompat.isDesktop();
+	}
+
 	public static final int INSET_ALL = 3; //All insets, from hole punches to nav bars
 	public static final int INSET_LRG = 2; //Only big insets, full size notches and nav bars
 	public static final int INSET_BLK = 1; //only complete blocker assets like navbars

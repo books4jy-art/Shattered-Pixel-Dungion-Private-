@@ -22,6 +22,7 @@
 package com.watabou.glwrap;
 
 import com.badlogic.gdx.Gdx;
+import com.watabou.utils.DeviceCompat;
 
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
@@ -78,7 +79,11 @@ public class Vertexbuffer {
 		((Buffer)vertices).position(updateStart);
 		bind();
 
-		if (updateStart == 0 && updateEnd == vertices.limit()){
+		//the web backend uploads the whole buffer regardless of position, so partial updates aren't possible there
+		if (DeviceCompat.isWeb()){
+			((Buffer)vertices).position(0);
+			Gdx.gl.glBufferData(Gdx.gl.GL_ARRAY_BUFFER, vertices.limit()*4, vertices, Gdx.gl.GL_DYNAMIC_DRAW);
+		} else if (updateStart == 0 && updateEnd == vertices.limit()){
 			Gdx.gl.glBufferData(Gdx.gl.GL_ARRAY_BUFFER, vertices.limit()*4, vertices, Gdx.gl.GL_DYNAMIC_DRAW);
 		} else {
 			Gdx.gl.glBufferSubData(Gdx.gl.GL_ARRAY_BUFFER, updateStart*4, (updateEnd - updateStart)*4, vertices);

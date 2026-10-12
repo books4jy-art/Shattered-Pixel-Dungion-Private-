@@ -859,8 +859,7 @@ public class GameScene extends PixelScene {
 	//this caps the speed of resting for higher refresh rate displays
 	private float notifyDelay = 1/60f;
 
-	private static final float WEB_AUTOSAVE_INTERVAL = 10f;
-	private float webAutosaveTimer = 0;
+	private boolean webTurnSaved = true;
 
 	public static boolean updateItemDisplays = false;
 
@@ -904,10 +903,12 @@ public class GameScene extends PixelScene {
 				Actor.processSingleThreaded();
 			}
 
-			//browser tabs can be closed or refreshed at any moment, so we also save periodically
-			webAutosaveTimer += Game.elapsed;
-			if (webAutosaveTimer >= WEB_AUTOSAVE_INTERVAL && Dungeon.hero.ready && Dungeon.hero.isAlive()) {
-				webAutosaveTimer = 0;
+			//browser tabs can be closed or refreshed at any moment, and saves made while the page is
+			// unloading may not finish writing, so we also save whenever the hero finishes acting
+			if (!Dungeon.hero.ready) {
+				webTurnSaved = false;
+			} else if (!webTurnSaved && Dungeon.hero.isAlive()) {
+				webTurnSaved = true;
 				onPause();
 			}
 		} else if (!Actor.processing() && Dungeon.hero.isAlive()) {

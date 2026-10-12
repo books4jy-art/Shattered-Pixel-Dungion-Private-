@@ -25,6 +25,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.github.xpenatan.gdx.teavm.backends.web.WebApplication;
 import com.watabou.utils.PlatformSupport;
 
 import java.util.HashMap;
@@ -41,6 +42,22 @@ public class WebPlatformSupport extends PlatformSupport {
 	@Override
 	public void updateSystemUI() {
 		//no system UI to manage in a browser
+	}
+
+	@Override
+	public boolean supportsFullScreen() {
+		return false;
+	}
+
+	//checking the user agent is slow, so it's only done once
+	private Boolean mobileDevice = null;
+
+	@Override
+	public boolean prefersFullInterface() {
+		if (mobileDevice == null){
+			mobileDevice = WebApplication.isMobileDevice();
+		}
+		return !mobileDevice;
 	}
 
 	@Override
