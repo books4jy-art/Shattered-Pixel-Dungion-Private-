@@ -1,0 +1,42 @@
+import org.teavm.gradle.api.OptimizationLevel
+
+plugins {
+    id 'java'
+    //keep in sync with gdxTeaVMVersion in gradle.properties
+    id 'com.github.xpenatan.gdx-teavm' version '1.6.1'
+}
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+//gdx-teavm requires Java 17+
+java.sourceCompatibility = java.targetCompatibility = JavaVersion.VERSION_17
+
+dependencies {
+    implementation project(':core')
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+    implementation "com.github.xpenatan.gdx-teavm:gdx-freetype-web:$gdxTeaVMVersion"
+}
+
+gdxTeaVM {
+    assets(new File(project(':core').projectDir, 'src/main/assets'))
+    //desktop assets include the droid sans fallback font
+    assets(new File(project(':desktop').projectDir, 'src/main/assets'))
+
+    //game objects are saved and restored by class name, so they must all be available via reflection
+    reflection('com.shatteredpixel.shatteredpixeldungeon**', 'com.watabou**')
+
+    js {
+        mainClass.set('com.shatteredpixel.shatteredpixeldungeon.web.WebLauncher')
+        htmlTitle.set(appName)
+        //passed to WebLauncher.main as the game version name and code
+        //the generated page passes this verbatim as main()'s first argument, so it must be a JS array
+        mainClassArgs.set("['$appVersionName', '$appVersionCode']")
+        optimization.set(OptimizationLevel.BALANCED)
+        //pass -PwebDebug for readable output when debugging in the browser
+        obfuscated.set(!project.hasProperty('webDebug'))
+        outOfProcess.set(true)
+        processMemory.set(10240)
+        //full type analysis runs out of memory on a codebase this size
+        fastGlobalAnalysis.set(true)
+    }
+}

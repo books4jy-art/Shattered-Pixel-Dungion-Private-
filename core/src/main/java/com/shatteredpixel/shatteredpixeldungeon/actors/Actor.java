@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
@@ -331,6 +332,73 @@ public abstract class Actor implements Bundlable {
 		} while (keepActorThreadAlive);
 	}
 	
+	//actor whose turn has come up, but which is waiting on a moving sprite during single-threaded processing
+	private static Actor waitingActor = null;
+	private static CharSprite waitingSprite = null;
+
+	//single-threaded replacement for sprite.wait() in actor logic. The actor should return false from act()
+	// after calling this, and will act again once the sprite has finished moving.
+	public static void waitForSprite( Actor actor, CharSprite sprite ){
+		waitingActor = actor;
+		waitingSprite = sprite;
+	}
+
+	//single-threaded equivalent of process(), for platforms without thread support (e.g. web)
+	//called from the render thread, processes actors until one needs to wait on input, an animation, or a moving sprite
+	public static void processSingleThreaded() {
+
+		if (waitingActor != null){
+			if (current == waitingActor && waitingSprite.isMoving){
+				return;
+			}
+			if (current == waitingActor) {
+				current = null;
+			}
+			waitingActor = null;
+			waitingSprite = null;
+		}
+
+		//an actor is still busy (e.g. waiting for input or an animation to call next())
+		if (current != null){
+			return;
+		}
+
+		boolean doNext;
+		do {
+			current = null;
+			if (Game.switchingScene()) {
+				return;
+			}
+
+			float earliest = Float.MAX_VALUE;
+			for (Actor actor : all) {
+				if (actor.time < earliest ||
+						actor.time == earliest && (current == null || actor.actPriority > current.actPriority)) {
+					earliest = actor.time;
+					current = actor;
+				}
+			}
+
+			if (current == null) {
+				return;
+			}
+
+			now = current.time;
+			Actor acting = current;
+
+			if (acting instanceof Char && ((Char) acting).sprite != null && ((Char) acting).sprite.isMoving) {
+				waitForSprite(acting, ((Char) acting).sprite);
+				return;
+			}
+
+			doNext = acting.act();
+			if (doNext && (Dungeon.hero == null || !Dungeon.hero.isAlive())) {
+				doNext = false;
+				current = null;
+			}
+		} while (doNext);
+	}
+
 	public static void add( Actor actor ) {
 		add( actor, now );
 	}

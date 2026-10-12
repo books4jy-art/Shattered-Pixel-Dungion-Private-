@@ -1,11 +1,22 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
 //core game code modules
 include ':SPD-classes'
 include ':core'
 
 //platform modules
-include ':android'
-include ':ios'
+//pass -PwebOnly to skip the android and iOS modules, e.g. when building the web version without an Android SDK
+if (!providers.gradleProperty('webOnly').present) {
+    include ':android'
+    include ':ios'
+}
 include ':desktop'
+include ':web'
 
 //service modules
 include ':services'

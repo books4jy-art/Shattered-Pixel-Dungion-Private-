@@ -75,6 +75,14 @@ public class NoosaScript extends Script {
 
 	public void drawElements( FloatBuffer vertices, ShortBuffer indices, int size ) {
 
+		if (DeviceCompat.isWeb()){
+			streamVertices( vertices, ((Buffer)vertices).limit() );
+			streamIndices( indices, size );
+			Gdx.gl20.glDrawElements( Gdx.gl20.GL_TRIANGLES, size, Gdx.gl20.GL_UNSIGNED_SHORT, 0 );
+			Quad.bindIndices();
+			return;
+		}
+
 		((Buffer)vertices).position( 0 );
 		aXY.vertexPointer( 2, 4, vertices );
 
@@ -87,6 +95,12 @@ public class NoosaScript extends Script {
 	}
 
 	public void drawQuad( FloatBuffer vertices ) {
+
+		if (DeviceCompat.isWeb()){
+			streamVertices( vertices, 16 );
+			Gdx.gl20.glDrawElements( Gdx.gl20.GL_TRIANGLES, Quad.SIZE, Gdx.gl20.GL_UNSIGNED_SHORT, 0 );
+			return;
+		}
 
 		((Buffer)vertices).position( 0 );
 		aXY.vertexPointer( 2, 4, vertices );
@@ -117,6 +131,12 @@ public class NoosaScript extends Script {
 			return;
 		}
 
+		if (DeviceCompat.isWeb()){
+			streamVertices( vertices, 16 * size );
+			Gdx.gl20.glDrawElements( Gdx.gl20.GL_TRIANGLES, Quad.SIZE * size, Gdx.gl20.GL_UNSIGNED_SHORT, 0 );
+			return;
+		}
+
 		((Buffer)vertices).position( 0 );
 		aXY.vertexPointer( 2, 4, vertices );
 
@@ -142,6 +162,32 @@ public class NoosaScript extends Script {
 		buffer.release();
 		
 		Gdx.gl20.glDrawElements( Gdx.gl20.GL_TRIANGLES, Quad.SIZE * length, Gdx.gl20.GL_UNSIGNED_SHORT, Quad.SIZE * Short.SIZE/8 * offset );
+	}
+	
+	//WebGL does not support client-side vertex arrays, so on web vertex/index data held in
+	// client memory is uploaded to these shared buffers before each draw instead
+	private static int streamVertexBuffer = -1;
+	private static int streamIndexBuffer = -1;
+
+	private void streamVertices( FloatBuffer vertices, int floats ){
+		if (streamVertexBuffer == -1){
+			streamVertexBuffer = Gdx.gl.glGenBuffer();
+		}
+		((Buffer)vertices).position( 0 );
+		Gdx.gl.glBindBuffer( Gdx.gl.GL_ARRAY_BUFFER, streamVertexBuffer );
+		Gdx.gl.glBufferData( Gdx.gl.GL_ARRAY_BUFFER, floats * 4, vertices, Gdx.gl.GL_STREAM_DRAW );
+		aXY.vertexBuffer( 2, 4, 0 );
+		aUV.vertexBuffer( 2, 4, 2 );
+		Gdx.gl.glBindBuffer( Gdx.gl.GL_ARRAY_BUFFER, 0 );
+	}
+
+	private void streamIndices( ShortBuffer indices, int count ){
+		if (streamIndexBuffer == -1){
+			streamIndexBuffer = Gdx.gl.glGenBuffer();
+		}
+		((Buffer)indices).position( 0 );
+		Gdx.gl.glBindBuffer( Gdx.gl.GL_ELEMENT_ARRAY_BUFFER, streamIndexBuffer );
+		Gdx.gl.glBufferData( Gdx.gl.GL_ELEMENT_ARRAY_BUFFER, count * 2, indices, Gdx.gl.GL_STREAM_DRAW );
 	}
 	
 	public void lighting( float rm, float gm, float bm, float am, float ra, float ga, float ba, float aa ) {

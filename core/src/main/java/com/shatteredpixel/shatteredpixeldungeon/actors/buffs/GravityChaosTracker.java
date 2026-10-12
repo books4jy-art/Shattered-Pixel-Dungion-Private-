@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
@@ -73,7 +74,14 @@ public class GravityChaosTracker extends Buff {
 	public boolean act() {
 
 		//wait until all sprites have finished moving
-		for (Char ch : Actor.chars()){
+		if (DeviceCompat.isWeb()){
+			for (Char ch : Actor.chars()){
+				if (ch.sprite != null && ch.sprite.isMoving){
+					Actor.waitForSprite(this, ch.sprite);
+					return false;
+				}
+			}
+		} else for (Char ch : Actor.chars()){
 			try {
 				synchronized (ch.sprite) {
 					if (ch.sprite.isMoving) {

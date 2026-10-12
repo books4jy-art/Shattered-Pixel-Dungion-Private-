@@ -146,6 +146,7 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.tweeners.Tweener;
 import com.watabou.utils.Callback;
+import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.PlatformSupport;
 import com.watabou.utils.Point;
@@ -858,6 +859,9 @@ public class GameScene extends PixelScene {
 	//this caps the speed of resting for higher refresh rate displays
 	private float notifyDelay = 1/60f;
 
+	private static final float WEB_AUTOSAVE_INTERVAL = 10f;
+	private float webAutosaveTimer = 0;
+
 	public static boolean updateItemDisplays = false;
 
 	public static boolean tagDisappeared = false;
@@ -893,7 +897,20 @@ public class GameScene extends PixelScene {
 			waterOfs = water.offsetY(); //re-assign to account for auto adjust
 		}
 
-		if (!Actor.processing() && Dungeon.hero.isAlive()) {
+		if (DeviceCompat.isWeb()) {
+			//no thread support on web, actors are processed on the render thread instead
+			if (Dungeon.hero.isAlive() && notifyDelay <= 0f) {
+				notifyDelay += 1/60f;
+				Actor.processSingleThreaded();
+			}
+
+			//browser tabs can be closed or refreshed at any moment, so we also save periodically
+			webAutosaveTimer += Game.elapsed;
+			if (webAutosaveTimer >= WEB_AUTOSAVE_INTERVAL && Dungeon.hero.ready && Dungeon.hero.isAlive()) {
+				webAutosaveTimer = 0;
+				onPause();
+			}
+		} else if (!Actor.processing() && Dungeon.hero.isAlive()) {
 			if (actorThread == null || !actorThread.isAlive()) {
 				
 				actorThread = new Thread() {
