@@ -52,6 +52,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Waterskin;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HolyTome;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.SkeletonKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.VelvetPouch;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
@@ -118,6 +119,18 @@ public enum HeroClass {
 
 		//every hero starts with an identified +4 ring of wealth
 		new RingOfWealth().upgrade(4).identify().collect();
+
+		//...a fully charged +9 skeleton key
+		SkeletonKey key = new SkeletonKey();
+		key.upgrade(9);
+		for (int c = 0; c < 10; c++){
+			key.charge(hero, 7.6f); //gives one charge per call, until full
+		}
+		key.identify().collect();
+
+		//...and 10 scrolls each of identify and magic mapping
+		new ScrollOfIdentify().quantity(10).identify().collect();
+		new ScrollOfMagicMapping().quantity(10).identify().collect();
 
 		switch (this) {
 			case WARRIOR:
