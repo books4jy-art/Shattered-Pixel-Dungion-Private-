@@ -32,6 +32,17 @@ public class Reflection {
 	}
 	
 	public static boolean isStatic( Class cls ){
+		if (DeviceCompat.isWeb()){
+			//TeaVM doesn't record whether a nested class is static, so it would report none of them as static.
+			// Inner (non-static) classes always take their outer instance as a constructor parameter,
+			// so a nested class with a no-argument constructor must be static.
+			for (java.lang.reflect.Constructor<?> constructor : cls.getDeclaredConstructors()){
+				if (constructor.getParameterTypes().length == 0){
+					return true;
+				}
+			}
+			return false;
+		}
 		return ClassReflection.isStaticClass(cls);
 	}
 	
