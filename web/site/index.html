@@ -7,9 +7,12 @@
 	#canvas { display: block; outline: none; }
 </style>
 <canvas id="canvas" tabindex="0" oncontextmenu="return false"></canvas>
+<script src="cloud-saves.js"></script>
 <script src="app.js"></script>
 <script>
-	//game version name and code, filled in by assemble-site.sh
-	main(__MAIN_ARGS__);
-	document.getElementById("canvas").focus();
+	spdStartWithCloudSaves(function () {
+		//game version name and code, filled in by assemble-site.sh
+		main(__MAIN_ARGS__);
+		document.getElementById("canvas").focus();
+	});
 </script>

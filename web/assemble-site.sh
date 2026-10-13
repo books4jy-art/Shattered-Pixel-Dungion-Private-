@@ -15,6 +15,7 @@ fi
 rm -rf "$SITE"
 mkdir -p "$SITE"
 cp -r "$DIST/app.js" "$DIST/assets" "$DIST/scripts" "$SITE/"
+cp site/cloud-saves.js "$SITE/"
 
 #escape the unicode replacement character, as some upload tools reject it in text files.
 # it only appears inside JS string literals, where the escape sequence is equivalent

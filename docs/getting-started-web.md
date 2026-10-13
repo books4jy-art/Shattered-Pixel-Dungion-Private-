@@ -22,6 +22,8 @@ Add `-PwebDebug` for readable (non-minified) JavaScript when debugging in the br
 
 Saves and settings are stored in the browser (IndexedDB and localStorage), so they belong to that browser and site address. Clearing site data deletes them. The game saves whenever the hero finishes acting, so refreshing or closing the page keeps your progress.
 
+When the page is hosted on claude.ai with the `db` and `user` capabilities, `web/site/cloud-saves.js` also mirrors every save file and the settings to the viewer's private area of the artifact's database. If the page opens with empty browser storage, they are copied back before the game starts. When the page runs anywhere else, this does nothing.
+
 A backup of each game is also taken whenever you arrive on a floor or continue a game. If the main save can't be read, the backup is restored automatically and the game says so in the log.
 
 ## Web-specific differences
